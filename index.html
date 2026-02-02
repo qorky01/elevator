@@ -3,213 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>엘리베이터 마스터: 시큐리티 엔지니어</title>
+    <title>엘리베이터 마스터: 프로페셔널 에디션</title>
     <style>
         :root {
             --metal: linear-gradient(145deg, #95a5a6, #2c3e50);
             --industrial-yellow: #f1c40f;
-            --danger-stripe: repeating-linear-gradient(45deg, #f1c40f, #f1c40f 10px, #2c3e50 10px, #2c3e50 20px);
+            --danger-red: #e74c3c;
             --led-red: #ff3e3e;
-            --bg-dark: #1a202c;
+            --panel-dark: #1a202c;
+            --stripe: repeating-linear-gradient(45deg, #f1c40f, #f1c40f 10px, #000 10px, #000 20px);
         }
 
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             font-family: 'Pretendard', sans-serif;
-            background-color: #0f172a;
-            overflow: hidden; touch-action: manipulation;
+            background-color: #0b0e14; overflow: hidden; touch-action: manipulation;
         }
 
-        #app {
-            display: flex;
-            width: 100vw; height: 100vh;
-            padding: 15px; box-sizing: border-box;
-            gap: 15px;
-        }
+        #app { display: flex; width: 100vw; height: 100vh; padding: 10px; box-sizing: border-box; gap: 10px; }
 
-        /* --- 좌측: 엘리베이터 외부 모습 --- */
+        /* --- 좌측 시뮬레이터 --- */
         .view-pane {
-            flex: 1.2;
-            background: #1e293b;
-            border-radius: 20px;
-            border: 10px solid #475569;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            position: relative;
+            flex: 1.3; background: #1e293b; border-radius: 15px; border: 8px solid #475569;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
         }
+
+        /* 카 내 조명 효과 */
+        #car-lighting-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0); pointer-events: none; transition: background 0.5s; z-index: 5;
+        }
+        .light-off #car-lighting-overlay { background: rgba(0,0,0,0.85); }
 
         .display-unit {
-            width: 180px; height: 100px;
-            background: #000; border: 4px solid #94a3b8;
-            border-radius: 10px; margin-bottom: 25px;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            box-shadow: 0 0 20px rgba(255,0,0,0.2);
+            width: 200px; height: 110px; background: #000; border: 4px solid #94a3b8;
+            border-radius: 10px; margin-bottom: 20px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 6;
         }
 
-        .floor-num {
-            font-family: 'Courier New', monospace;
-            font-size: 4.5rem; color: var(--led-red);
-            text-shadow: 0 0 15px var(--led-red);
-            line-height: 1;
-        }
-
+        .floor-num { font-family: 'Courier New', monospace; font-size: 5rem; color: var(--led-red); line-height: 1; }
         .dir-icon { font-size: 1.5rem; color: var(--led-red); }
 
         .door-system {
-            width: 320px; height: 480px;
-            background: #0f172a;
-            border: 10px solid #64748b;
-            position: relative; overflow: hidden;
+            width: 320px; height: 460px; background: #0f172a; border: 10px solid #64748b;
+            position: relative; overflow: hidden; z-index: 6;
         }
 
         .door {
             position: absolute; width: 50%; height: 100%;
-            background: linear-gradient(90deg, #cbd5e1, #94a3b8);
-            border: 1px solid #475569;
+            background: linear-gradient(90deg, #cbd5e1, #94a3b8); border: 1px solid #475569;
             transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .door-l { left: 0; border-right: 2px solid #334155; }
         .door-r { right: 0; border-left: 2px solid #334155; }
-
         .door-open .door-l { transform: translateX(-95%); }
         .door-open .door-r { transform: translateX(95%); }
 
-        /* --- 우측: 제어 패널 --- */
+        /* 상태 경고창 */
+        .warning-overlay {
+            position: absolute; top: 20px; width: 80%; padding: 10px;
+            background: var(--danger-red); color: white; text-align: center;
+            font-weight: bold; font-size: 1.2rem; border-radius: 5px;
+            display: none; z-index: 10; animation: blink 0.5s infinite;
+        }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* --- 우측 제어 패널 --- */
         .control-pane {
-            flex: 1;
-            background: #94a3b8;
-            border-radius: 20px;
-            position: relative;
-            display: flex; flex-direction: column;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.4);
-            overflow: hidden;
-            border: 5px solid #475569;
+            flex: 1; background: #94a3b8; border-radius: 15px; position: relative;
+            display: flex; flex-direction: column; box-shadow: inset 0 0 40px rgba(0,0,0,0.4);
+            overflow: hidden; border: 5px solid #475569;
         }
 
-        /* 상단 모드 선택 (현실적인 버튼) */
-        .tab-bar {
-            display: flex; background: #334155; padding: 10px; gap: 10px;
-        }
+        .tab-bar { display: flex; background: #334155; padding: 8px; gap: 8px; }
         .tab-btn {
-            flex: 1; padding: 15px; border: none; border-radius: 8px;
+            flex: 1; padding: 12px; border: none; border-radius: 6px;
             font-weight: bold; cursor: pointer; background: #475569; color: #94a3b8;
-            transition: 0.3s;
         }
-        .tab-btn.active { background: #cbd5e1; color: #1e293b; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .tab-btn.active { background: #cbd5e1; color: #1e293b; }
 
-        /* 승객 모드 UI */
-        #passenger-ui { padding: 20px; flex: 1; display: block; }
-        .floor-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-        }
+        /* 승객 UI */
+        #passenger-ui { padding: 15px; flex: 1; }
+        .floor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .floor-btn {
-            width: 70px; height: 70px; border-radius: 50%;
-            background: #f8fafc; border: 5px solid #64748b;
-            font-size: 1.8rem; font-weight: bold; cursor: pointer;
-            box-shadow: 0 6px 0 #475569; transition: 0.1s;
-            display: flex; align-items: center; justify-content: center;
+            width: 65px; height: 65px; border-radius: 50%; background: #f8fafc;
+            border: 4px solid #64748b; font-size: 1.6rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 5px 0 #475569; display: flex; align-items: center; justify-content: center;
         }
-        .floor-btn.active {
-            border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24; color: #d97706;
-        }
+        .floor-btn.active { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; color: #d97706; }
         .floor-btn:active { transform: translateY(4px); box-shadow: none; }
 
-        .comm-btns {
-            margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
-        }
-        .rect-btn {
-            height: 65px; border-radius: 12px; border: 4px solid #475569;
-            font-size: 1.2rem; cursor: pointer; font-weight: bold; background: #e2e8f0;
-        }
-        .bell-btn { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
-
-        /* --- 점검 모드 (제어반 디자인) --- */
-        #inspection-ui {
-            display: none; padding: 20px; flex: 1;
-            background: #1e293b; position: relative;
-        }
-
-        /* 제어반 물리 덮개 (Keyhole) */
+        /* --- 점검 UI (시윤 엔지니어 전용) --- */
+        #inspection-ui { display: none; padding: 15px; flex: 1; background: #1e293b; position: relative; }
+        
         #control-cover {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #475569, #1e293b);
-            z-index: 10; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #475569, #1e293b); z-index: 20;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: transform 0.6s cubic-bezier(0.7, 0, 0.3, 1);
         }
-        .keyhole-lock {
-            width: 90px; height: 90px; border-radius: 50%;
-            background: #0f172a; border: 6px solid #94a3b8;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        .keyhole-shape {
-            width: 14px; height: 35px; background: #000; border-radius: 10px; position: relative;
-        }
-        .keyhole-shape::after {
-            content: ''; position: absolute; bottom: -8px; left: -8px;
-            width: 30px; height: 20px; background: #000; border-radius: 50%;
+
+        .admin-panel {
+            background: #334155; border: 4px solid var(--industrial-yellow);
+            padding: 10px; border-radius: 8px; height: 100%; overflow-y: auto; box-sizing: border-box;
         }
 
-        /* 실제 내부 점검반 패널 */
-        .admin-panel {
-            background: #334155; border: 6px solid var(--industrial-yellow);
-            padding: 20px; border-radius: 10px; height: 100%; box-sizing: border-box;
+        .hazard-strip { height: 15px; background: var(--stripe); margin-bottom: 10px; border-radius: 3px; }
+
+        /* 비상 정지 버튼 */
+        .e-stop-container { text-align: center; margin-bottom: 15px; }
+        .e-stop-btn {
+            width: 100px; height: 100px; border-radius: 50%; background: #c53030;
+            border: 8px solid #742a2a; color: white; font-weight: bold; font-size: 1.2rem;
+            cursor: pointer; box-shadow: 0 8px 0 #63171b; transition: 0.1s;
         }
-        .hazard-strip { height: 25px; background: var(--danger-stripe); margin-bottom: 20px; border-radius: 5px; }
-        
-        .switch-box {
+        .e-stop-btn.pressed { transform: translateY(6px); box-shadow: 0 2px 0 #63171b; background: #ff0000; }
+
+        .switch-row {
             display: flex; justify-content: space-between; align-items: center;
-            background: #0f172a; padding: 15px; margin-bottom: 15px; border-radius: 8px;
-            border: 2px solid #475569; color: #fff; font-weight: bold;
+            background: #0f172a; padding: 10px; margin-bottom: 8px; border-radius: 6px;
+            color: #fff; font-size: 0.85rem; border: 1px solid #475569;
         }
-        /* 기계식 토글 스위치 */
+
+        /* 토글 스위치 */
         .toggle-sw {
-            width: 70px; height: 35px; background: #475569; border-radius: 20px;
+            width: 50px; height: 26px; background: #475569; border-radius: 15px;
             position: relative; cursor: pointer; transition: 0.3s;
         }
         .toggle-sw.on { background: #22c55e; }
         .toggle-sw::after {
-            content: ''; position: absolute; top: 3px; left: 3px;
-            width: 29px; height: 29px; background: #fff; border-radius: 50%;
-            transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 22px; height: 22px; background: #fff; border-radius: 50%; transition: 0.3s;
         }
-        .toggle-sw.on::after { left: 38px; }
+        .toggle-sw.on::after { left: 26px; }
 
-        .manual-control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .giant-btn {
-            height: 100px; border: none; border-radius: 15px;
-            color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;
-            box-shadow: 0 8px 0 #0f172a; transition: 0.1s;
+            height: 70px; border: none; border-radius: 10px; color: white;
+            font-weight: bold; font-size: 1.2rem; cursor: pointer; box-shadow: 0 5px 0 #000;
         }
-        .giant-btn:active { transform: translateY(4px); box-shadow: none; }
-        .up-btn { background: #2563eb; }
-        .down-btn { background: #eab308; color: #000; }
+        .up-btn { background: #2563eb; } .down-btn { background: #eab308; color: #000; }
 
         .system-log {
-            margin-top: 20px; background: #000; color: #22c55e;
-            padding: 10px; height: 100px; overflow-y: auto;
-            font-family: 'Courier New', monospace; font-size: 0.8rem;
-            border: 2px solid #475569; border-radius: 5px;
+            margin-top: 15px; background: #000; color: #22c55e; padding: 8px;
+            height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.75rem;
+            border: 1px solid #475569; line-height: 1.4;
         }
 
-        /* 패스워드 모달 */
-        #key-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center;
-        }
-        .keypad-box { background: #cbd5e1; padding: 30px; border-radius: 25px; width: 300px; text-align: center; }
-        .key-input { width: 100%; height: 50px; font-size: 2rem; text-align: center; margin-bottom: 20px; border-radius: 10px; border: none; }
-        .key-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .k-btn { height: 60px; font-size: 1.5rem; font-weight: bold; border-radius: 10px; border: 2px solid #94a3b8; cursor: pointer; }
+        /* 모달 스타일 생략 (이전과 동일) */
+        #key-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; }
+        .keypad-box { background: #cbd5e1; padding: 20px; border-radius: 20px; width: 260px; text-align: center; }
+        .key-input { width: 100%; height: 40px; font-size: 1.5rem; text-align: center; margin-bottom: 10px; }
+        .key-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .k-btn { height: 50px; font-size: 1.2rem; cursor: pointer; border-radius: 8px; border: 1px solid #94a3b8; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <!-- 좌측 시각화 -->
-    <div class="view-pane">
+    <div class="view-pane" id="sim-view">
+        <div id="car-lighting-overlay"></div>
+        <div id="warning-msg" class="warning-overlay">비상 정지! 모든 작동 중단</div>
+        <div id="car-top-msg" class="warning-overlay" style="top: 70px; background: var(--industrial-yellow); color: black;">카 상부 작업 중</div>
+        
         <div class="display-unit">
             <div id="d-dir" class="dir-icon">●</div>
             <div id="d-floor" class="floor-num">1</div>
@@ -218,257 +175,328 @@
             <div class="door door-l"></div>
             <div class="door door-r"></div>
         </div>
-        <p id="d-status" style="color:#94a3b8; margin-top:15px; font-weight:bold;">SYSTEM READY</p>
+        <p style="color:white; z-index:6; margin-top:10px; font-size:0.8rem;" id="sys-status">NORMAL SERVICE</p>
     </div>
 
-    <!-- 우측 제어반 -->
     <div class="control-pane">
         <div class="tab-bar">
             <button id="t-pass" class="tab-btn active" onclick="setMode('passenger')">승객 모드</button>
             <button id="t-insp" class="tab-btn" onclick="setMode('inspection')">점검 모드</button>
         </div>
 
-        <!-- 승객 모드 화면 -->
         <div id="passenger-ui">
             <div class="floor-grid" id="floor-btns-container"></div>
-            <div class="comm-btns">
-                <button class="rect-btn" onclick="handleDoor('open')">◀||▶</button>
-                <button class="rect-btn" onclick="handleDoor('close')">▶||◀</button>
-                <button class="rect-btn bell-btn" onclick="emergencyCall()">🔔</button>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-top:20px;">
+                <button class="floor-btn" style="border-radius:10px;" onclick="handleDoor('open')">◀||▶</button>
+                <button class="floor-btn" style="border-radius:10px;" onclick="handleDoor('close')">▶||◀</button>
+                <button class="floor-btn" style="border-radius:10px; background:#fee2e2; color:#b91c1c;" onclick="emergencyCall()">🔔</button>
             </div>
         </div>
 
-        <!-- 점검 모드 화면 -->
         <div id="inspection-ui">
-            <!-- 잠금 덮개 -->
             <div id="control-cover">
-                <div class="keyhole-lock" onclick="openKeyModal()">
-                    <div class="keyhole-shape"></div>
+                <div style="width:70px; height:70px; border-radius:50%; background:#000; border:4px solid #94a3b8; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="openKeyModal()">
+                    <div style="width:10px; height:25px; background:#94a3b8; border-radius:5px;"></div>
                 </div>
-                <p style="color:#94a3b8; margin-top:20px; font-weight:bold;">ENGINEER KEY ONLY</p>
+                <p style="color:white; margin-top:10px; font-size:0.8rem;">ENGINEER KEY LOCK</p>
             </div>
 
-            <!-- 내부 패널 -->
             <div class="admin-panel">
                 <div class="hazard-strip"></div>
-                <div class="switch-box">
-                    <span>수동 점검 운전</span>
+                
+                <div class="e-stop-container">
+                    <button id="e-stop" class="e-stop-btn" onclick="toggleEStop()">E-STOP</button>
+                </div>
+
+                <div class="switch-row">
+                    <span>수동 점검 운전 (INSP)</span>
                     <div id="sw-manual" class="toggle-sw" onclick="toggleSwitch('sw-manual')"></div>
                 </div>
-                <div class="manual-control-grid">
+
+                <div class="manual-grid">
                     <button class="giant-btn up-btn" onmousedown="moveManual('up')" onmouseup="stopManual()" ontouchstart="moveManual('up')" ontouchend="stopManual()">▲ UP</button>
                     <button class="giant-btn down-btn" onmousedown="moveManual('down')" onmouseup="stopManual()" ontouchstart="moveManual('down')" ontouchend="stopManual()">▼ DOWN</button>
                 </div>
-                <div class="switch-box" style="margin-top:15px;">
-                    <span>도어 강제 개방</span>
-                    <div id="sw-door" class="toggle-sw" onclick="toggleSwitch('sw-door')"></div>
+
+                <div class="switch-row" style="margin-top:10px;">
+                    <span>고속 운전 (HIGH SPEED)</span>
+                    <div id="sw-speed" class="toggle-sw" onclick="toggleSwitch('sw-speed')"></div>
                 </div>
-                <div class="system-log" id="log-display">
-                    [LOG START]
+
+                <div class="switch-row">
+                    <span>도어 홀드 (DOOR HOLD)</span>
+                    <div id="sw-hold" class="toggle-sw" onclick="toggleSwitch('sw-hold')"></div>
                 </div>
+
+                <div class="switch-row">
+                    <span>카 내 조명 (LIGHT)</span>
+                    <div id="sw-light" class="toggle-sw on" onclick="toggleSwitch('sw-light')"></div>
+                </div>
+
+                <div class="switch-row">
+                    <span>카 내 팬 (FAN)</span>
+                    <div id="sw-fan" class="toggle-sw" onclick="toggleSwitch('sw-fan')"></div>
+                </div>
+
+                <div class="switch-row">
+                    <span>카 상부 점검 모드</span>
+                    <div id="sw-cartop" class="toggle-sw" onclick="toggleSwitch('sw-cartop')"></div>
+                </div>
+
+                <div class="system-log" id="log-display"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 패스워드 키패드 -->
+<!-- 키패드 생략 (이전 코드 유지) -->
 <div id="key-modal">
     <div class="keypad-box">
-        <h2 style="margin-top:0;">ENTER KEY</h2>
+        <h3>ENGINEER AUTH</h3>
         <input type="password" id="key-field" readonly class="key-input">
         <div class="key-grid">
-            <script>
-                for(let i=1; i<=9; i++) document.write(`<button class="k-btn" onclick="pressKey('${i}')">${i}</button>`);
-            </script>
+            <script>for(let i=1;i<=9;i++) document.write(`<button class="k-btn" onclick="pressKey('${i}')">${i}</button>`);</script>
             <button class="k-btn" onclick="pressKey('C')" style="background:#fca5a5;">C</button>
             <button class="k-btn" onclick="pressKey('0')">0</button>
             <button class="k-btn" onclick="checkAuth()" style="background:#86efac;">OK</button>
         </div>
-        <button onclick="closeKeyModal()" style="margin-top:20px; border:none; background:none; color:#475569; text-decoration:underline; cursor:pointer;">창 닫기</button>
     </div>
 </div>
 
 <script>
-    // --- 오디오 시스템 ---
+    // --- 오디오 엔진 (Web Audio API) ---
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    function beep(f, d, t='sine', v=0.1) {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = t; o.frequency.value = f;
-        g.gain.setValueAtTime(v, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + d);
-        o.connect(g); g.connect(ctx.destination);
-        o.start(); o.stop(ctx.currentTime + d);
+    
+    // 팬 소음 (White Noise + Filter)
+    let fanNode = null;
+    function playFanSound(on) {
+        if(on) {
+            const bufferSize = 2 * ctx.sampleRate,
+            noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate),
+            output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+            
+            fanNode = ctx.createBufferSource();
+            fanNode.buffer = noiseBuffer;
+            fanNode.loop = true;
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass'; filter.frequency.value = 1000;
+            const gain = ctx.createGain(); gain.gain.value = 0.05;
+            fanNode.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+            fanNode.start();
+        } else if(fanNode) { fanNode.stop(); fanNode = null; }
     }
 
-    const sound = {
-        press: () => beep(880, 0.1),
-        arrival: () => { beep(523, 0.5); setTimeout(()=>beep(659,0.5), 200); },
-        door: () => beep(150, 0.8, 'triangle', 0.05),
-        lock: () => beep(200, 0.3, 'square', 0.1),
-        warn: () => beep(440, 1.0, 'sawtooth', 0.1)
-    };
+    // 엘리베이터 이동음 (Oscillator)
+    let moveNode = null;
+    function playMoveSound(on, highSpeed = false) {
+        if(on) {
+            moveNode = ctx.createOscillator();
+            const gain = ctx.createGain();
+            moveNode.type = 'triangle';
+            moveNode.frequency.value = highSpeed ? 80 : 50;
+            gain.gain.value = 0.05;
+            moveNode.connect(gain); gain.connect(ctx.destination);
+            moveNode.start();
+        } else if(moveNode) { moveNode.stop(); moveNode = null; }
+    }
 
-    // --- 엘리베이터 엔진 ---
+    function soundEffect(freq, dur, type='sine', vol=0.1) {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.type = type; o.frequency.value = freq;
+        g.gain.setValueAtTime(vol, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(); o.stop(ctx.currentTime + dur);
+    }
+
+    // --- 상태 관리 ---
     let state = {
-        floor: 1,
-        targets: new Set(),
-        moving: false,
-        doorOpen: false,
-        isUnlocked: false, // 점검모드 잠금 해제 여부
-        inspectActive: false // 점검 스위치 ON 여부
+        floor: 1, targets: new Set(), moving: false, doorOpen: false,
+        unlocked: false, inspActive: false, eStop: false,
+        highSpeed: false, doorHold: false, light: true, fan: false, carTop: false
     };
 
-    // 층 버튼 생성
+    // --- 초기화 ---
     const btnContainer = document.getElementById('floor-btns-container');
     for(let i=15; i>=1; i--) {
         const b = document.createElement('button');
-        b.className = 'floor-btn';
-        b.id = `fbtn-${i}`;
-        b.innerText = i;
+        b.className = 'floor-btn'; b.id = `f-${i}`; b.innerText = i;
         b.onclick = () => floorRequest(i);
         btnContainer.appendChild(b);
     }
 
     function floorRequest(f) {
-        if(state.inspectActive) { addLog("점검 중: 버튼 비활성화"); return; }
+        if(state.inspActive || state.eStop) return;
         if(state.floor === f && !state.moving) { handleDoor('open'); return; }
-        sound.press();
+        soundEffect(880, 0.1);
         state.targets.add(f);
-        document.getElementById(`fbtn-${f}`).classList.add('active');
-        if(!state.moving) moveElevator();
+        document.getElementById(`f-${f}`).classList.add('active');
+        if(!state.moving) moveLoop();
     }
 
-    async function moveElevator() {
-        if(state.targets.size === 0) {
-            document.getElementById('d-dir').innerText = "●";
-            return;
+    async function moveLoop() {
+        if(state.targets.size === 0 || state.eStop) { 
+            document.getElementById('d-dir').innerText = "●"; 
+            state.moving = false; 
+            playMoveSound(false);
+            return; 
         }
         state.moving = true;
+        playMoveSound(true, state.highSpeed);
         let next = Array.from(state.targets).sort((a,b) => Math.abs(a-state.floor) - Math.abs(b-state.floor))[0];
 
-        while(state.floor !== next) {
+        while(state.floor !== next && !state.eStop) {
             if(state.doorOpen) await handleDoor('close');
-            let isUp = next > state.floor;
-            document.getElementById('d-dir').innerText = isUp ? "▲" : "▼";
-            await new Promise(r => setTimeout(r, 1200));
-            state.floor += isUp ? 1 : -1;
+            document.getElementById('d-dir').innerText = next > state.floor ? "▲" : "▼";
+            await new Promise(r => setTimeout(r, state.highSpeed ? 800 : 1500));
+            if(state.eStop) break;
+            state.floor += next > state.floor ? 1 : -1;
             document.getElementById('d-floor').innerText = state.floor;
             if(state.targets.has(state.floor)) break;
         }
 
+        playMoveSound(false);
         state.moving = false;
-        state.targets.delete(state.floor);
-        document.getElementById(`fbtn-${state.floor}`).classList.remove('active');
-        sound.arrival();
-        await handleDoor('open');
-        setTimeout(() => { if(!state.moving && state.targets.size > 0) moveElevator(); }, 3000);
+        if(!state.eStop) {
+            state.targets.delete(state.floor);
+            document.getElementById(`f-${state.floor}`).classList.remove('active');
+            soundEffect(523, 0.5);
+            await handleDoor('open');
+            setTimeout(() => { if(state.targets.size > 0) moveLoop(); }, 3000);
+        }
     }
 
     async function handleDoor(cmd) {
+        if(state.doorHold && cmd === 'close') return;
         const frame = document.getElementById('d-frame');
-        sound.door();
-        if(cmd === 'open') {
-            frame.classList.add('door-open');
-            state.doorOpen = true;
-        } else {
-            frame.classList.remove('door-open');
-            state.doorOpen = false;
-        }
+        soundEffect(150, 0.8, 'triangle', 0.05);
+        if(cmd === 'open') { frame.classList.add('door-open'); state.doorOpen = true; }
+        else { frame.classList.remove('door-open'); state.doorOpen = false; }
         return new Promise(r => setTimeout(r, 1200));
     }
 
-    function emergencyCall() {
-        sound.warn();
-        alert("🚨 비상벨 호출: 관리실과 통화 중입니다.");
-        addLog("비상 호출 감지");
-    }
-
-    // --- 모드 및 보안 로직 ---
-    function setMode(m) {
-        const pUI = document.getElementById('passenger-ui');
-        const iUI = document.getElementById('inspection-ui');
-        const tP = document.getElementById('t-pass');
-        const tI = document.getElementById('t-insp');
-
-        if(m === 'passenger') {
-            // 승객 모드로 돌아오면 즉시 점검 모드를 잠금(Reset)
-            state.isUnlocked = false;
-            document.getElementById('control-cover').style.transform = "translateX(0)";
-            pUI.style.display = 'block';
-            iUI.style.display = 'none';
-            tP.classList.add('active');
-            tI.classList.remove('active');
-            addLog("시스템 보안 잠금");
+    // --- 점검 기능 ---
+    function toggleEStop() {
+        state.eStop = !state.eStop;
+        const btn = document.getElementById('e-stop');
+        const msg = document.getElementById('warning-msg');
+        soundEffect(200, 0.5, 'square', 0.2); // 묵직한 클릭음
+        if(state.eStop) {
+            btn.classList.add('pressed');
+            msg.style.display = 'block';
+            addLog("!!! EMERGENCY STOP ACTIVE !!!");
+            state.targets.clear();
+            document.querySelectorAll('.floor-btn').forEach(b => b.classList.remove('active'));
+            playMoveSound(false);
         } else {
-            pUI.style.display = 'none';
-            iUI.style.display = 'block';
-            tP.classList.remove('active');
-            tI.classList.add('active');
+            btn.classList.remove('pressed');
+            msg.style.display = 'none';
+            addLog("Emergency Stop Released. System Resetting...");
         }
     }
 
-    // 키패드 로직
-    let inputStr = "";
-    function openKeyModal() { document.getElementById('key-modal').style.display = 'flex'; }
-    function closeKeyModal() { document.getElementById('key-modal').style.display = 'none'; inputStr = ""; document.getElementById('key-field').value=""; }
-    
-    function pressKey(k) {
-        if(k==='C') inputStr = ""; else inputStr += k;
-        document.getElementById('key-field').value = "*".repeat(inputStr.length);
-        sound.press();
-    }
-
-    function checkAuth() {
-        if(inputStr === "112") {
-            state.isUnlocked = true;
-            sound.lock();
-            document.getElementById('control-cover').style.transform = "translateX(100%)"; // 문 열기
-            closeKeyModal();
-            addLog("엔지니어 인증 성공");
-        } else {
-            alert("인증 키가 다릅니다!");
-            inputStr = "";
-            document.getElementById('key-field').value = "";
-        }
-    }
-
-    // 점검반 토글 스위치
     function toggleSwitch(id) {
         const sw = document.getElementById(id);
         sw.classList.toggle('on');
-        sound.press();
-        
+        soundEffect(400, 0.1, 'sine', 0.05);
+        const isOn = sw.classList.contains('on');
+
         if(id === 'sw-manual') {
-            state.inspectActive = sw.classList.contains('on');
-            document.getElementById('d-status').innerText = state.inspectActive ? "INSPECTION MODE" : "SYSTEM READY";
-            addLog(state.inspectActive ? "수동 운전 모드 활성" : "정상 운전 복구");
+            state.inspActive = isOn;
+            document.getElementById('sys-status').innerText = isOn ? "INSPECTION MODE" : "NORMAL SERVICE";
+            addLog(isOn ? "Manual Inspection Mode: ON" : "Normal Operation Resumed");
+        } else if(id === 'sw-speed') {
+            state.highSpeed = isOn;
+            addLog(isOn ? "Speed Setting: HIGH (1.5m/s)" : "Speed Setting: LOW (0.5m/s)");
+        } else if(id === 'sw-hold') {
+            state.doorHold = isOn;
+            addLog(isOn ? "Door Hold Active: Door will remain open" : "Door Hold Released");
+        } else if(id === 'sw-light') {
+            state.light = isOn;
+            document.getElementById('sim-view').classList.toggle('light-off', !isOn);
+            addLog(isOn ? "Car Lighting: NORMAL" : "Car Lighting: EMERGENCY OFF");
+        } else if(id === 'sw-fan') {
+            state.fan = isOn;
+            playFanSound(isOn);
+            addLog(isOn ? "Ventilation Fan: ON (Flow: 20m3/min)" : "Ventilation Fan: OFF");
+        } else if(id === 'sw-cartop') {
+            state.carTop = isOn;
+            document.getElementById('car-top-msg').style.display = isOn ? 'block' : 'none';
+            addLog(isOn ? "Warning: CAR TOP INSPECTION Mode Active" : "Car Top Mode Deactivated");
         }
-        if(id === 'sw-door') {
-            handleDoor(sw.classList.contains('on') ? 'open' : 'close');
-            addLog("도어 강제 제어");
-        }
+        
+        // 특정 로그 연동
+        if(Math.random() > 0.5) generateRandomTechnicalLog();
     }
 
-    // 수동 이동
-    let moveTimer;
+    let manualTimer;
     function moveManual(dir) {
-        if(!state.inspectActive) { addLog("오류: 수동 스위치를 켜세요!"); return; }
-        moveTimer = setInterval(() => {
+        if(!state.inspActive || state.eStop) return;
+        addLog(`Manual Drive: ${dir.toUpperCase()}`);
+        playMoveSound(true, state.highSpeed);
+        manualTimer = setInterval(() => {
             if(dir === 'up' && state.floor < 15) state.floor++;
             if(dir === 'down' && state.floor > 1) state.floor--;
             document.getElementById('d-floor').innerText = state.floor;
-            beep(100, 0.2, 'square', 0.05);
-        }, 300);
+            if(Math.random() > 0.9) generateRandomTechnicalLog();
+        }, state.highSpeed ? 400 : 1000);
     }
-    function stopManual() { clearInterval(moveTimer); addLog(`수동 정지: ${state.floor}층`); }
+    function stopManual() { clearInterval(manualTimer); playMoveSound(false); }
+
+    function generateRandomTechnicalLog() {
+        const logs = [
+            `Motor Temp: ${Math.floor(Math.random()*10+35)}°C - NORMAL`,
+            `Governor Rope Tension: Check OK`,
+            `${Math.floor(Math.random()*15+1)}F Door Interlock: Corrected`,
+            `Battery Backup: 100% Charged`,
+            `Safety Circuit: Closed (Normal)`,
+            `Button Response Test: 20ms (Pass)`
+        ];
+        addLog(logs[Math.floor(Math.random()*logs.length)]);
+    }
 
     function addLog(msg) {
-        const log = document.getElementById('log-display');
+        const logDisp = document.getElementById('log-display');
         const now = new Date();
-        log.innerHTML += `[${now.getSeconds()}s] ${msg}<br>`;
-        log.scrollTop = log.scrollHeight;
+        const time = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+        logDisp.innerHTML = `[${time}] ${msg}<br>` + logDisp.innerHTML;
     }
+
+    // --- 보안/모드 전환 로직 ---
+    function setMode(m) {
+        if(m === 'passenger') {
+            state.unlocked = false;
+            document.getElementById('control-cover').style.transform = "translateX(0)";
+            document.getElementById('passenger-ui').style.display = 'block';
+            document.getElementById('inspection-ui').style.display = 'none';
+            document.getElementById('t-pass').classList.add('active');
+            document.getElementById('t-insp').classList.remove('active');
+        } else {
+            document.getElementById('passenger-ui').style.display = 'none';
+            document.getElementById('inspection-ui').style.display = 'block';
+            document.getElementById('t-pass').classList.remove('active');
+            document.getElementById('t-insp').classList.add('active');
+        }
+    }
+
+    // 키패드 입력
+    let keyStr = "";
+    function openKeyModal() { document.getElementById('key-modal').style.display = 'flex'; }
+    function pressKey(k) { if(k==='C') keyStr = ""; else keyStr += k; document.getElementById('key-field').value = "*".repeat(keyStr.length); soundEffect(600, 0.05); }
+    function checkAuth() {
+        if(keyStr === "112") {
+            state.unlocked = true; document.getElementById('control-cover').style.transform = "translateX(100%)";
+            addLog("Engineer Authenticated. Welcome, Siyun.");
+            document.getElementById('key-modal').style.display = 'none';
+        } else { alert("KEY INVALID"); keyStr = ""; document.getElementById('key-field').value = ""; }
+    }
+
+    function emergencyCall() { soundEffect(440, 1, 'sawtooth', 0.1); alert("🚨 관리실과 연결되었습니다."); addLog("Emergency Intercom Active"); }
+
+    // 초기 로그
+    addLog("System Booting... v4.0 Professional");
+    addLog("Safety Circuit Test: OK");
 </script>
 </body>
 </html>
